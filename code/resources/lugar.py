@@ -1,20 +1,15 @@
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 
 from models.lugar import PlaceModel
 
 
 class Place(Resource):
-    '''
     parser = reqparse.RequestParser()
-    parser.add_argument('id',
-                        type=int,
-                        required=True,
-                        help='Field "id" must be a integer.')
     parser.add_argument('name',
                         type=str,
                         required=True,
-                        help='Field "name" must be a string.')
-    '''
+                        help='Field "name" is required and must be a string.')
+
     def get(self, name):
         place = PlaceModel.find_by_name(name)
         if place:
@@ -22,10 +17,6 @@ class Place(Resource):
         return {'message': 'Place not found.'}, 404
 
     def post(self, name):
-        '''
-        data = Place.parser.parse_args()
-        place = PlaceModel(**data)
-        '''
         place = PlaceModel(name)
         if PlaceModel.find_by_name(name):
             return {'message': 'Place {} already exists'.format(name)}, 400
@@ -37,11 +28,26 @@ class Place(Resource):
 
         return place.json(), 201
 
-    def put(self):
-        pass
+    def put(self, name):
+        place = PlaceModel.find_by_name(name)
+        data = Place.parser.parse_args()
 
-    def delete(self):
-        pass
+        if place is None:
+            place = PlaceModel(name)
+        else:
+            if PlaceModel.find_by_name(data['name']):
+                return {'message': 'Place {} already exists.'.format(data['name'])}, 400
+            place.name = data['name']
+
+        place.save_to_db()
+        return place.json()
+
+    def delete(self, name):
+        place = PlaceModel.find_by_name(name)
+        if place:
+            place.delete_from_db()
+            return {'message': 'Place {} deleted'.format(name)}
+        return {'message': 'Place not found.'}, 404
 
 
 class PlaceList(Resource):
