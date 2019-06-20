@@ -4,7 +4,18 @@ from flask_restful import Api
 from resources.lugar import Place, PlaceList
 
 app = Flask('__name__')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+
+POSTGRES = {
+    'user': 'postgres',
+    'pw': 'password',
+    'db': 'data_db',
+    'host': 'localhost',
+    'port': '5432',
+}
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
+%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 api = Api(app)
